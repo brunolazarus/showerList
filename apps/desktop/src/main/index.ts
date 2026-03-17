@@ -3,7 +3,11 @@ import type { MenuItemConstructorOptions } from "electron";
 import { join } from "path";
 import { config } from "dotenv";
 import { loadTokens } from "./tokenStore";
-import { startAuth, handleCallback, setAuthTimeoutHandler } from "./oauthManager";
+import {
+  startAuth,
+  handleCallback,
+  setAuthTimeoutHandler,
+} from "./oauthManager";
 
 // Load .env from workspace root.
 // __dirname = apps/desktop/dist/main at runtime, so go up 4 levels.

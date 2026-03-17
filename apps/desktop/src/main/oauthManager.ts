@@ -171,7 +171,9 @@ export async function handleCallback(
   }
 
   if (!response.ok) {
-    const errorText = await response.text().catch(() => String(response.status));
+    const errorText = await response
+      .text()
+      .catch(() => String(response.status));
     return { ok: false, error: errorText };
   }
 
