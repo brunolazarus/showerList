@@ -7,12 +7,12 @@
 
 ## Target
 
-| Attribute | Value |
-|---|---|
-| Platform | macOS 13+ (Ventura and later) |
-| Architecture | arm64 (Apple Silicon) + x64 (Intel) via universal binary |
+| Attribute    | Value                                                          |
+| ------------ | -------------------------------------------------------------- |
+| Platform     | macOS 13+ (Ventura and later)                                  |
+| Architecture | arm64 (Apple Silicon) + x64 (Intel) via universal binary       |
 | Distribution | Direct `.dmg` — no App Store, no notarization for personal use |
-| Auto-update | Not in scope for MVP |
+| Auto-update  | Not in scope for MVP                                           |
 
 ---
 
@@ -46,11 +46,7 @@ Add to `apps/desktop/package.json` under `"build"`:
         "schemes": ["showerlist"]
       }
     ],
-    "files": [
-      "dist/**/*",
-      "assets/**/*",
-      "!assets/README.md"
-    ],
+    "files": ["dist/**/*", "assets/**/*", "!assets/README.md"],
     "extraMetadata": {
       "main": "dist/main/index.js"
     }
@@ -66,10 +62,10 @@ Add to `apps/desktop/package.json` under `"build"`:
 
 ## Required Assets Before Packaging
 
-| File | Size | Purpose |
-|---|---|---|
-| `apps/desktop/assets/trayIconTemplate.png` | 16×16 or 22×22 px | Menu bar icon |
-| `apps/desktop/assets/icon.icns` | 512×512 source | App icon for Finder + .dmg |
+| File                                       | Size              | Purpose                    |
+| ------------------------------------------ | ----------------- | -------------------------- |
+| `apps/desktop/assets/trayIconTemplate.png` | 16×16 or 22×22 px | Menu bar icon              |
+| `apps/desktop/assets/icon.icns`            | 512×512 source    | App icon for Finder + .dmg |
 
 To generate `icon.icns` from a single 1024×1024 PNG:
 
