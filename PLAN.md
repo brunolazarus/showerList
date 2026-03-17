@@ -10,7 +10,7 @@ exposes three playback commands: skip, previous, pause/play.
 **In scope:**
 
 - Electron tray app with minimal menu UI
-- PKCE OAuth flow (open browser → localhost callback → token exchange)
+- PKCE OAuth flow (open browser → custom URL callback `showerlist://callback` → token exchange)
 - Token persistence via Electron `safeStorage`
 - Spotify playback commands: next, previous, pause, play
 - Active device detection with user-facing error when no device found
@@ -56,6 +56,8 @@ working commit + delete `~/.config/showerlist/tokens`.
 
 ## Phases
 
+Execution checklist: `PLAN-CHECKLIST.md`
+
 ### Phase 1 — Scaffold
 
 - Monorepo with pnpm workspaces
@@ -74,15 +76,18 @@ working commit + delete `~/.config/showerlist/tokens`.
 
 - `packages/spotify-client`: typed REST wrapper
 - Endpoints: next, previous, pause, play, current player state
+- Detailed plan: `PLAN-PHASE-3.md`
 
 ### Phase 4 — Integration
 
 - Wire tray menu → commands → API
 - Error states in tray menu
 - Token auto-refresh middleware
+- Detailed plan: `PLAN-PHASE-4.md`
 
 ### Phase 5 — Hardening
 
 - Port conflict handling
 - OAuth timeout cleanup
 - Vitest unit tests for OAuth manager and client
+- Detailed plan: `PLAN-PHASE-5.md`

@@ -4,10 +4,15 @@
   "scripts": {
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "build": "pnpm -C apps/desktop run build:check"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.0.3",
+    "globals": "^17.4.0",
     "typescript": "^5.4.5",
+    "typescript-eslint": "^8.57.1",
     "vitest": "^1.6.0"
   }
 }
