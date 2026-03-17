@@ -3,6 +3,7 @@ import type { MenuItemConstructorOptions } from "electron";
 import { join } from "path";
 import { config } from "dotenv";
 import { loadTokens } from "./tokenStore";
+import { startAuth, handleCallback, setAuthTimeoutHandler } from "./oauthManager";
 
 // Load .env from workspace root.
 // __dirname = apps/desktop/dist/main at runtime, so go up 4 levels.
@@ -69,8 +70,16 @@ function buildMenu(): MenuItemConstructorOptions[] {
     { type: "separator" },
     {
       label: connected ? "✓  Connected to Spotify" : "Connect to Spotify…",
+      enabled: !connected,
       click: () => {
-        // OAuth flow wired in Phase 2
+        const clientId = process.env["SPOTIFY_CLIENT_ID"];
+        if (!clientId) {
+          console.error("[ShowerList] SPOTIFY_CLIENT_ID is not set");
+          return;
+        }
+        startAuth(clientId).catch((err: unknown) => {
+          console.error("[ShowerList] startAuth failed:", err);
+        });
       },
     },
     { type: "separator" },
@@ -94,7 +103,52 @@ function createTray(): void {
 app.whenReady().then(() => {
   // Menu-bar only app — hide from macOS Dock
   app.dock?.hide();
+
+  // Register custom URL scheme for OAuth deep-link callback
+  app.setAsDefaultProtocolClient("showerlist");
+
+  // Surface auth timeout via tray tooltip
+  setAuthTimeoutHandler(() => {
+    tray?.setToolTip("ShowerList — Auth timed out, try again");
+    refreshMenu();
+  });
+
   createTray();
+});
+
+// macOS: deep-link arrives here when app is already running
+app.on("open-url", (event, url) => {
+  event.preventDefault();
+  handleCallback(url)
+    .then((result) => {
+      if (result.ok) {
+        refreshMenu();
+        tray?.setToolTip("ShowerList");
+      } else {
+        console.error("[ShowerList] OAuth callback error:", result.error);
+      }
+    })
+    .catch((err: unknown) => {
+      console.error("[ShowerList] handleCallback threw:", err);
+    });
+});
+
+// Windows/Linux: deep-link arrives via second-instance argv
+app.on("second-instance", (_event, argv) => {
+  const url = argv.find((arg) => arg.startsWith("showerlist://"));
+  if (!url) return;
+  handleCallback(url)
+    .then((result) => {
+      if (result.ok) {
+        refreshMenu();
+        tray?.setToolTip("ShowerList");
+      } else {
+        console.error("[ShowerList] OAuth callback error:", result.error);
+      }
+    })
+    .catch((err: unknown) => {
+      console.error("[ShowerList] handleCallback threw:", err);
+    });
 });
 
 // Keep the process alive when there are no windows open
