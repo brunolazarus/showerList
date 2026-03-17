@@ -12,4 +12,4 @@ export type TokenData = {
   expiresAt: number;
 };
 
-export type PlaybackCommand = 'next' | 'previous' | 'pause' | 'play';
+export type PlaybackCommand = "next" | "previous" | "pause" | "play";

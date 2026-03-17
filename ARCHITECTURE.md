@@ -36,21 +36,21 @@
 
 ## Approved OAuth Scopes
 
-| Scope | Purpose |
-|---|---|
-| `user-modify-playback-state` | Skip, previous, pause, play |
-| `user-read-playback-state` | Active device detection |
-| `user-read-currently-playing` | Show current track in tray |
+| Scope                         | Purpose                     |
+| ----------------------------- | --------------------------- |
+| `user-modify-playback-state`  | Skip, previous, pause, play |
+| `user-read-playback-state`    | Active device detection     |
+| `user-read-currently-playing` | Show current track in tray  |
 
 ## Playback Command Map
 
-| User Action | Spotify Endpoint |
-|---|---|
-| Skip | `POST /v1/me/player/next` |
-| Previous | `POST /v1/me/player/previous` |
-| Pause | `PUT /v1/me/player/pause` |
-| Play | `PUT /v1/me/player/play` |
-| Status | `GET /v1/me/player` |
+| User Action | Spotify Endpoint              |
+| ----------- | ----------------------------- |
+| Skip        | `POST /v1/me/player/next`     |
+| Previous    | `POST /v1/me/player/previous` |
+| Pause       | `PUT /v1/me/player/pause`     |
+| Play        | `PUT /v1/me/player/play`      |
+| Status      | `GET /v1/me/player`           |
 
 ## Trust Surfaces
 

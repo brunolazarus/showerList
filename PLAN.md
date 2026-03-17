@@ -8,6 +8,7 @@ exposes three playback commands: skip, previous, pause/play.
 ## Scope
 
 **In scope:**
+
 - Electron tray app with minimal menu UI
 - PKCE OAuth flow (open browser → localhost callback → token exchange)
 - Token persistence via Electron `safeStorage`
@@ -16,6 +17,7 @@ exposes three playback commands: skip, previous, pause/play.
 - Auto token refresh on 401
 
 **Out of scope (Part 2):**
+
 - Voice input, command detection, noise pipeline
 - Windows/Linux support
 - Auto-update / app signing
@@ -30,12 +32,12 @@ exposes three playback commands: skip, previous, pause/play.
 
 ## Failure Modes
 
-| Failure | Handling |
-|---|---|
-| No active Spotify device | Show tray tooltip: "No active Spotify device" |
-| Token expired | Auto-refresh silently, retry once, surface error if refresh fails |
-| User not Premium | 403 from API → show "Premium required" in menu |
-| OAuth window closed without completing | Timeout after 5 min, deregister protocol handler |
+| Failure                                | Handling                                                          |
+| -------------------------------------- | ----------------------------------------------------------------- |
+| No active Spotify device               | Show tray tooltip: "No active Spotify device"                     |
+| Token expired                          | Auto-refresh silently, retry once, surface error if refresh fails |
+| User not Premium                       | 403 from API → show "Premium required" in menu                    |
+| OAuth window closed without completing | Timeout after 5 min, deregister protocol handler                  |
 
 ## Rollback
 
@@ -55,27 +57,32 @@ working commit + delete `~/.config/showerlist/tokens`.
 ## Phases
 
 ### Phase 1 — Scaffold
+
 - Monorepo with pnpm workspaces
 - `apps/desktop` Electron + TypeScript skeleton
 - Tray icon with static menu
 - `.env` loading, `safeStorage` wrapper
 
 ### Phase 2 — OAuth
+
 - `OAuthManager`: PKCE generation, browser open via `shell.openExternal`
 - Custom URL scheme (`showerlist://callback`) via `app.setAsDefaultProtocolClient`
 - macOS `open-url` event handler to receive the auth code
 - Token exchange + storage
 
 ### Phase 3 — Spotify Client
+
 - `packages/spotify-client`: typed REST wrapper
 - Endpoints: next, previous, pause, play, current player state
 
 ### Phase 4 — Integration
+
 - Wire tray menu → commands → API
 - Error states in tray menu
 - Token auto-refresh middleware
 
 ### Phase 5 — Hardening
+
 - Port conflict handling
 - OAuth timeout cleanup
 - Vitest unit tests for OAuth manager and client

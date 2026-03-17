@@ -55,9 +55,9 @@ Delete `~/.config/showerlist/tokens` to force re-auth.
 
 ## Common Issues
 
-| Symptom | Fix |
-|---|---|
-| "No active device" | Open Spotify on any device and play something first |
-| 401 after login | Token may be corrupt — reset auth above |
+| Symptom                   | Fix                                                           |
+| ------------------------- | ------------------------------------------------------------- |
+| "No active device"        | Open Spotify on any device and play something first           |
+| 401 after login           | Token may be corrupt — reset auth above                       |
 | OAuth callback not caught | Confirm `showerlist://` is registered — restart app and retry |
-| Commands fail silently | Confirm account is Premium |
+| Commands fail silently    | Confirm account is Premium                                    |
