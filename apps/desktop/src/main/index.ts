@@ -8,6 +8,8 @@ import {
   handleCallback,
   setAuthTimeoutHandler,
 } from "./oauthManager";
+import * as spotifyService from "./spotifyService";
+import type { SpotifyError } from "@showerlist/spotify-client";
 
 // Load .env from workspace root.
 // __dirname = apps/desktop/dist/main at runtime, so go up 4 levels.
@@ -20,6 +22,7 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 let tray: Tray | null = null;
+let titlePollInterval: ReturnType<typeof setInterval> | null = null;
 
 function getTrayIcon(): Electron.NativeImage {
   // Production: place a 16x16 or 22x22 PNG at assets/trayIconTemplate.png.
@@ -45,30 +48,121 @@ function getTrayIcon(): Electron.NativeImage {
   );
 }
 
+function handleCommandError(error: SpotifyError): void {
+  if (error.code === "no_active_device") {
+    tray?.setToolTip("ShowerList — No active Spotify device");
+  } else if (error.code === "premium_required") {
+    tray?.setToolTip("ShowerList — Spotify Premium required");
+  } else if (error.code === "unauthorized") {
+    spotifyService.disconnect();
+    stopTitlePolling();
+    tray?.setTitle("");
+    tray?.setToolTip("ShowerList — Session expired, reconnect");
+    refreshMenu();
+  } else {
+    tray?.setToolTip("ShowerList — Spotify error");
+  }
+}
+
+function startTitlePolling(): void {
+  if (titlePollInterval) return;
+  titlePollInterval = setInterval(() => {
+    updateTrayTitle().catch(() => {});
+  }, 30_000);
+}
+
+function stopTitlePolling(): void {
+  if (titlePollInterval) {
+    clearInterval(titlePollInterval);
+    titlePollInterval = null;
+  }
+}
+
+function scheduleTrackRefresh(): void {
+  setTimeout(() => {
+    updateTrayTitle().catch(() => {});
+  }, 500);
+}
+
+async function updateTrayTitle(): Promise<void> {
+  if (!spotifyService.isConnected()) {
+    tray?.setTitle("");
+    return;
+  }
+  const result = await spotifyService.fetchCurrentTrack();
+  if (result.ok && result.value) {
+    tray?.setTitle(`${result.value.artists[0]} — ${result.value.name}`);
+  } else {
+    tray?.setTitle("");
+  }
+}
+
+function onAuthSuccess(): void {
+  const cid = process.env["SPOTIFY_CLIENT_ID"] ?? "";
+  if (!cid) return;
+  const stored = loadTokens();
+  if (stored.ok) {
+    spotifyService.init(stored.value, cid);
+    startTitlePolling();
+    updateTrayTitle().catch(() => {});
+  }
+  tray?.setToolTip("ShowerList");
+  refreshMenu();
+}
+
 function buildMenu(): MenuItemConstructorOptions[] {
-  const tokens = loadTokens();
-  const connected = tokens.ok;
+  const connected = spotifyService.isConnected();
 
   return [
     {
       label: "⏮  Previous",
       enabled: connected,
       click: () => {
-        // Wired in Phase 4
+        spotifyService
+          .cmdPrevious()
+          .then((result) => {
+            if (result.ok) {
+              tray?.setToolTip("ShowerList");
+              scheduleTrackRefresh();
+            } else {
+              handleCommandError(result.error);
+            }
+          })
+          .catch(() => {});
       },
     },
     {
       label: "⏸  Pause / ▶  Play",
       enabled: connected,
       click: () => {
-        // Wired in Phase 4
+        spotifyService
+          .cmdToggle()
+          .then((result) => {
+            if (result.ok) {
+              tray?.setToolTip("ShowerList");
+              scheduleTrackRefresh();
+            } else {
+              handleCommandError(result.error);
+            }
+          })
+          .catch(() => {});
       },
     },
     {
       label: "⏭  Skip",
       enabled: connected,
       click: () => {
-        // Wired in Phase 4
+        spotifyService
+          .cmdNext()
+          .then((result) => {
+            if (result.ok) {
+              tray?.setToolTip("ShowerList");
+              scheduleTrackRefresh();
+            } else {
+              handleCommandError(result.error);
+            }
+          })
+          .catch(() => {});
       },
     },
     { type: "separator" },
@@ -118,6 +212,18 @@ app.whenReady().then(() => {
   });
 
   createTray();
+
+  // Load stored tokens and init service if available
+  const clientId = process.env["SPOTIFY_CLIENT_ID"] ?? "";
+  if (clientId) {
+    const stored = loadTokens();
+    if (stored.ok) {
+      spotifyService.init(stored.value, clientId);
+      startTitlePolling();
+      updateTrayTitle().catch(() => {});
+      refreshMenu();
+    }
+  }
 });
 
 // macOS: deep-link arrives here when app is already running
@@ -126,8 +232,7 @@ app.on("open-url", (event, url) => {
   handleCallback(url)
     .then((result) => {
       if (result.ok) {
-        refreshMenu();
-        tray?.setToolTip("ShowerList");
+        onAuthSuccess();
       } else {
         console.error("[ShowerList] OAuth callback error:", result.error);
       }
@@ -144,8 +249,7 @@ app.on("second-instance", (_event, argv) => {
   handleCallback(url)
     .then((result) => {
       if (result.ok) {
-        refreshMenu();
-        tray?.setToolTip("ShowerList");
+        onAuthSuccess();
       } else {
         console.error("[ShowerList] OAuth callback error:", result.error);
       }
