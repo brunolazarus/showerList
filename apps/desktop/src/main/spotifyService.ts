@@ -1,7 +1,11 @@
 import { clearTokens } from "./tokenStore";
 import { refreshAccessToken } from "./oauthManager";
 import * as spotify from "@showerlist/spotify-client";
-import type { SpotifyError, TrackInfo, Result } from "@showerlist/spotify-client";
+import type {
+  SpotifyError,
+  TrackInfo,
+  Result,
+} from "@showerlist/spotify-client";
 import type { TokenData } from "../shared/types";
 
 // Refresh proactively when within 2 minutes of expiry
@@ -61,7 +65,10 @@ type SpotifyFn<T> = (token: string) => Promise<Result<T, SpotifyError>>;
 async function run<T>(fn: SpotifyFn<T>): Promise<Result<T, SpotifyError>> {
   const fresh = await ensureFreshToken();
   if (!fresh || !tokenData) {
-    return { ok: false, error: { code: "unauthorized", message: "Not connected" } };
+    return {
+      ok: false,
+      error: { code: "unauthorized", message: "Not connected" },
+    };
   }
 
   const result = await fn(tokenData.accessToken);
@@ -70,7 +77,10 @@ async function run<T>(fn: SpotifyFn<T>): Promise<Result<T, SpotifyError>> {
   if (!result.ok && result.error.code === "unauthorized") {
     const refreshed = await doRefresh();
     if (!refreshed || !tokenData) {
-      return { ok: false, error: { code: "unauthorized", message: "Token refresh failed" } };
+      return {
+        ok: false,
+        error: { code: "unauthorized", message: "Token refresh failed" },
+      };
     }
     return fn(tokenData.accessToken);
   }
@@ -92,6 +102,8 @@ export async function cmdToggle(): Promise<Result<void, SpotifyError>> {
   return run(playerResult.value.isPlaying ? spotify.pause : spotify.play);
 }
 
-export async function fetchCurrentTrack(): Promise<Result<TrackInfo | null, SpotifyError>> {
+export async function fetchCurrentTrack(): Promise<
+  Result<TrackInfo | null, SpotifyError>
+> {
   return run(spotify.getCurrentTrack);
 }
