@@ -212,10 +212,67 @@ export async function handleCallback(
   return { ok: true, value: undefined };
 }
 
-// --- Stub: token refresh (implemented in Phase 4) ---
+// --- Token refresh ---
 
 export async function refreshAccessToken(
-  _clientId: string,
+  clientId: string,
+  refreshToken: string,
 ): Promise<Result<TokenData>> {
-  throw new Error("Not implemented — Phase 4");
+  const body = new URLSearchParams({
+    grant_type: "refresh_token",
+    refresh_token: refreshToken,
+    client_id: clientId,
+  });
+
+  let response: Response;
+  try {
+    response = await fetch("https://accounts.spotify.com/api/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+  } catch (e) {
+    return { ok: false, error: `Network error: ${String(e)}` };
+  }
+
+  if (!response.ok) {
+    const errorText = await response
+      .text()
+      .catch(() => String(response.status));
+    return { ok: false, error: errorText };
+  }
+
+  let json: unknown;
+  try {
+    json = await response.json();
+  } catch {
+    return { ok: false, error: "Failed to parse token response" };
+  }
+
+  const tokenResponse = json as {
+    access_token: string;
+    refresh_token?: string;
+    expires_in: number;
+  };
+
+  if (
+    typeof tokenResponse.access_token !== "string" ||
+    typeof tokenResponse.expires_in !== "number"
+  ) {
+    return { ok: false, error: "Unexpected token response shape" };
+  }
+
+  const tokenData: TokenData = {
+    accessToken: tokenResponse.access_token,
+    // Spotify may or may not rotate the refresh token — keep the old one if absent
+    refreshToken: tokenResponse.refresh_token ?? refreshToken,
+    expiresAt: Date.now() + tokenResponse.expires_in * 1000,
+  };
+
+  const saveResult = saveTokens(tokenData);
+  if (!saveResult.ok) {
+    return saveResult;
+  }
+
+  return { ok: true, value: tokenData };
 }

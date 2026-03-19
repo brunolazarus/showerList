@@ -2,7 +2,8 @@
   "name": "showerlist",
   "private": true,
   "scripts": {
-    "typecheck": "pnpm -r typecheck",
+    "build-spotify": "pnpm --filter @showerlist/spotify-client run build",
+    "typecheck": "pnpm --filter @showerlist/spotify-client run build && pnpm -r typecheck",
     "test": "vitest run",
     "lint": "eslint .",
     "build": "pnpm -C apps/desktop run build:check"

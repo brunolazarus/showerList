@@ -29,6 +29,9 @@ importers:
 
   apps/desktop:
     dependencies:
+      '@showerlist/spotify-client':
+        specifier: workspace:*
+        version: link:../../packages/spotify-client
       dotenv:
         specifier: ^16.4.5
         version: 16.6.1
@@ -39,6 +42,12 @@ importers:
       electron:
         specifier: ^34.0.0
         version: 34.5.8
+
+  packages/spotify-client:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.0
+        version: 20.19.37
 
 packages:
 

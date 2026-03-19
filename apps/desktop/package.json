@@ -4,11 +4,12 @@
   "private": true,
   "main": "dist/main/index.js",
   "scripts": {
-    "dev": "tsc && electron .",
+    "dev": "pnpm -w run build-spotify && tsc && electron .",
     "typecheck": "tsc --noEmit",
     "build:check": "tsc --noEmit"
   },
   "dependencies": {
+    "@showerlist/spotify-client": "workspace:*",
     "dotenv": "^16.4.5"
   },
   "devDependencies": {
