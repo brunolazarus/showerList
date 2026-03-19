@@ -114,6 +114,9 @@ function onAuthSuccess(): void {
     spotifyService.init(stored.value, cid);
     startTitlePolling();
     updateTrayTitle().catch(() => {});
+  } else if (stored.error !== "No tokens stored") {
+    tray?.setToolTip("ShowerList — Token load failed, reconnect");
+    refreshMenu();
   }
   tray?.setToolTip("ShowerList");
   refreshMenu();
@@ -230,6 +233,9 @@ app.whenReady().then(() => {
       spotifyService.init(stored.value, clientId);
       startTitlePolling();
       updateTrayTitle().catch(() => {});
+      refreshMenu();
+    } else if (stored.error !== "No tokens stored") {
+      tray?.setToolTip("ShowerList — Token load failed, reconnect");
       refreshMenu();
     }
   }

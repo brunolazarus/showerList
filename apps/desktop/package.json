@@ -23,8 +23,7 @@
     "productName": "ShowerList",
     "mac": {
       "category": "public.app-category.music",
-      "target": [{ "target": "dmg", "arch": ["universal"] }],
-      "icon": "assets/icon.icns"
+      "target": [{ "target": "dmg", "arch": ["universal"] }]
     },
     "protocols": [
       {

@@ -8,6 +8,16 @@ export type {
   PlayerState,
 } from "./types";
 
+export {
+  SPOTIFY_OAUTH_SCOPES,
+  SPOTIFY_REDIRECT_URI,
+  generateCodeVerifier,
+  generateCodeChallenge,
+  buildSpotifyAuthUrl,
+  parseSpotifyCallback,
+} from "./oauth";
+export type { OAuthCallbackData } from "./oauth";
+
 const BASE_URL = "https://api.spotify.com";
 
 // Internal shapes matching the Spotify REST API responses

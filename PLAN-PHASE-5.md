@@ -36,6 +36,11 @@ Harden the desktop app for reliability and prepare repeatable packaging checks.
 - Restart token reuse
 - No active device recovery
 
+5. Cross-platform isolation (Phase 5 extension)
+- Move platform-agnostic OAuth logic to a shared package module.
+- Keep Electron-specific behavior in desktop adapters (`shell`, tray, deep-link events).
+- Ensure shared module has no Electron imports so mobile code can reuse it.
+
 ## Exit Criteria
 
 - Mechanical checks all pass from workspace root.

@@ -63,3 +63,15 @@
 - Playback control requires Spotify Premium
 - Active device must exist — 404 = no active device, surface to user
 - Token refresh: access tokens expire in 1h — auto-refresh on 401
+
+## Cross-Platform Isolation
+
+- Shared core logic (platform-agnostic):
+	- Spotify REST wrapper in `packages/spotify-client/`
+	- OAuth helpers in `packages/spotify-client/src/oauth.ts`
+- Electron adapter logic (desktop-only):
+	- `shell.openExternal`, tray/menu, protocol event wiring in `apps/desktop/src/main/`
+- Mobile adapter logic (future iPhone app):
+	- Deep-link receiver, secure storage implementation, and UI lifecycle handling
+
+Rule: shared modules must not import Electron APIs so the same logic can be reused by a mobile adapter.
