@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "pnpm -w run build-spotify && tsc && electron .",
     "typecheck": "tsc --noEmit",
-    "build:check": "tsc --noEmit"
+    "build:check": "tsc --noEmit",
+    "package": "pnpm -w run build-spotify && tsc && electron-builder --dir"
   },
   "dependencies": {
     "@showerlist/spotify-client": "workspace:*",
@@ -14,6 +15,26 @@
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
-    "electron": "^34.0.0"
+    "electron": "^34.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.brunolazaro.showerlist",
+    "productName": "ShowerList",
+    "mac": {
+      "category": "public.app-category.music",
+      "target": [{ "target": "dmg", "arch": ["universal"] }],
+      "icon": "assets/icon.icns"
+    },
+    "protocols": [
+      {
+        "name": "ShowerList",
+        "schemes": ["showerlist"]
+      }
+    ],
+    "files": ["dist/**/*", "assets/**/*", "!assets/README.md"],
+    "extraMetadata": {
+      "main": "dist/main/index.js"
+    }
   }
 }

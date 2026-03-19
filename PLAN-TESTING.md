@@ -25,18 +25,20 @@ pnpm test --watch       # during development
 
 ## Coverage Targets by Module
 
-### `apps/desktop/src/main/oauthManager.ts` (Phase 2)
+### `apps/desktop/src/main/oauthManager.ts` (Phase 2 — tests implemented in Phase 5)
 
-| Test                                                                  | Type                |
-| --------------------------------------------------------------------- | ------------------- |
-| `generateCodeVerifier` returns 43-char base64url string               | Unit                |
-| `generateCodeChallenge` returns correct SHA-256 base64url of verifier | Unit                |
-| `buildAuthUrl` includes all required params and correct scopes        | Unit                |
-| `handleCallback` rejects wrong scheme (e.g. `http://`)                | Unit                |
-| `handleCallback` rejects mismatched `state`                           | Unit                |
-| `handleCallback` rejects missing `code` param                         | Unit                |
-| `handleCallback` parses valid callback URL and calls token exchange   | Unit (fetch mocked) |
-| Auth timeout clears `pendingAuth` after 5 min                         | Unit (fake timers)  |
+> See `apps/desktop/src/main/oauthManager.test.ts`
+
+| Test                                                                  | Type                | Status |
+| --------------------------------------------------------------------- | ------------------- | ------ |
+| `generateCodeVerifier` returns 43-char base64url string               | Unit                | ✅ done |
+| `generateCodeChallenge` returns correct SHA-256 base64url of verifier | Unit                | ✅ done |
+| `buildAuthUrl` includes all required params and correct scopes        | Unit                | ✅ done |
+| `handleCallback` rejects wrong scheme (e.g. `http://`)                | Unit                | ✅ done |
+| `handleCallback` rejects mismatched `state`                           | Unit                | ✅ done |
+| `handleCallback` rejects missing `code` param                         | Unit                | ✅ done |
+| `handleCallback` parses valid callback URL and calls token exchange   | Unit (fetch mocked) | ✅ done |
+| Auth timeout clears `pendingAuth` after 5 min                         | Unit (fake timers)  | ✅ done |
 
 ### `packages/spotify-client/` (Phase 3)
 
@@ -73,7 +75,7 @@ pnpm test --watch       # during development
 
 ## Vitest Config
 
-Create `vitest.config.ts` at repo root in Phase 5:
+`vitest.config.ts` — created at repo root in Phase 5 ✅
 
 ```ts
 import { defineConfig } from "vitest/config";

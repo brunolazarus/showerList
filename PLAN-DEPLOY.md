@@ -18,7 +18,7 @@
 
 ## Build Tool
 
-**electron-builder** — added to `apps/desktop` devDependencies in Phase 4/5.
+**electron-builder** — added to `apps/desktop` devDependencies in Phase 5 ✅
 
 ```bash
 pnpm --filter desktop package   # produces .app + .dmg in apps/desktop/dist/
