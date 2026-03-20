@@ -1,5 +1,8 @@
 import { Readable } from "stream";
-import * as portAudio from "naudiodon";
+// Import types only — zero runtime cost; avoids loading the native .node
+// binary at module load time (ABI mismatch / missing portaudio would otherwise
+// crash the process before any error handler runs).
+import type * as portAudioTypes from "naudiodon";
 
 const CHANNEL_COUNT = 2;
 const SAMPLE_RATE = 48000;
@@ -20,14 +23,37 @@ export function startCapture(
   onFrame: (frame: Int16Array) => void,
   onError?: (err: Error) => void,
 ): void {
-  const s = portAudio.AudioIO({
-    inOptions: {
-      channelCount: CHANNEL_COUNT,
-      sampleFormat: portAudio.SampleFormat16Bit,
-      sampleRate: SAMPLE_RATE,
-      deviceId: -1, // default device
-    },
-  }) as unknown as InputAudioStream;
+  if (stream) {
+    throw new Error("Audio capture already running");
+  }
+
+  // Lazy-load the native addon so ABI / missing-library errors are catchable
+  // rather than crashing the process before any JS logic runs.
+  let portAudio: typeof portAudioTypes;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    portAudio = require("naudiodon") as typeof portAudioTypes;
+  } catch (loadErr) {
+    onError?.(loadErr instanceof Error ? loadErr : new Error(String(loadErr)));
+    return;
+  }
+
+  // The AudioIO constructor can also throw (e.g. no audio device, portaudio
+  // init failure) — catch it so the error travels through IPC.
+  let s: InputAudioStream;
+  try {
+    s = portAudio.AudioIO({
+      inOptions: {
+        channelCount: CHANNEL_COUNT,
+        sampleFormat: portAudio.SampleFormat16Bit,
+        sampleRate: SAMPLE_RATE,
+        deviceId: -1, // default device
+      },
+    }) as unknown as InputAudioStream;
+  } catch (initErr) {
+    onError?.(initErr instanceof Error ? initErr : new Error(String(initErr)));
+    return;
+  }
 
   stream = s;
 
