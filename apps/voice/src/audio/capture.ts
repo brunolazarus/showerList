@@ -9,11 +9,17 @@ export const FRAME_SAMPLE_COUNT = 480;
 const BYTES_PER_FRAME = FRAME_SAMPLE_COUNT * CHANNEL_COUNT * 2; // 1920 bytes
 
 // The inOptions-only overload returns Readable & AudioStream.
-type InputAudioStream = Readable & { start(): void; quit(cb?: () => void): void };
+type InputAudioStream = Readable & {
+  start(): void;
+  quit(cb?: () => void): void;
+};
 
 let stream: InputAudioStream | null = null;
 
-export function startCapture(onFrame: (frame: Int16Array) => void): void {
+export function startCapture(
+  onFrame: (frame: Int16Array) => void,
+  onError?: (err: Error) => void,
+): void {
   const s = portAudio.AudioIO({
     inOptions: {
       channelCount: CHANNEL_COUNT,
@@ -24,6 +30,11 @@ export function startCapture(onFrame: (frame: Int16Array) => void): void {
   }) as unknown as InputAudioStream;
 
   stream = s;
+
+  s.on("error", (err: Error) => {
+    stream = null;
+    onError?.(err);
+  });
 
   // portaudio delivers data in variable-sized chunks; accumulate until we have
   // a full 480-sample frame before forwarding.
@@ -47,9 +58,11 @@ export function startCapture(onFrame: (frame: Int16Array) => void): void {
   s.start();
 }
 
-export function stopCapture(): void {
+export function stopCapture(onDone?: () => void): void {
   if (stream) {
-    stream.quit();
+    stream.quit(onDone);
     stream = null;
+  } else {
+    onDone?.();
   }
 }

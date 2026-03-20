@@ -5,8 +5,7 @@ import { RingBuffer } from "./audio/ringBuffer";
 const ringBuffer = new RingBuffer();
 
 function shutdown(): void {
-  stopCapture();
-  process.exit(0);
+  stopCapture(() => process.exit(0));
 }
 
 process.on("SIGINT", shutdown);
@@ -14,6 +13,11 @@ process.on("SIGTERM", shutdown);
 
 emit({ type: "status", state: "idle" });
 
-startCapture((frame) => {
-  ringBuffer.push(frame);
-});
+startCapture(
+  (frame) => {
+    ringBuffer.push(frame);
+  },
+  (err) => {
+    emit({ type: "status", state: "error", detail: err.message });
+  },
+);
