@@ -28,8 +28,6 @@ export function setAuthTimeoutHandler(handler: () => void): void {
   onAuthTimeout = handler;
 }
 
-// --- PKCE helpers ---
-
 export function generateCodeVerifier(): string {
   return randomBytes(32)
     .toString("base64")
@@ -46,8 +44,6 @@ export async function generateCodeChallenge(verifier: string): Promise<string> {
     .replace(/\//g, "_")
     .replace(/=/g, "");
 }
-
-// --- Build auth URL ---
 
 export function buildAuthUrl(params: {
   clientId: string;
@@ -117,15 +113,10 @@ export async function handleCallback(
     return { ok: false, error: "Unexpected URL scheme" };
   }
 
-  if (parsed.pathname !== "/callback" && parsed.hostname !== "callback") {
-    // macOS parses showerlist://callback as hostname=callback, pathname=/
-    // Windows/Linux parses it as hostname='', pathname=/callback
-    // Accept both forms.
-    const isCallbackHost = parsed.hostname === "callback";
-    const isCallbackPath = parsed.pathname === "/callback";
-    if (!isCallbackHost && !isCallbackPath) {
-      return { ok: false, error: "Unexpected callback path" };
-    }
+  const isCallbackHost = parsed.hostname === "callback";
+  const isCallbackPath = parsed.pathname === "/callback";
+  if (!isCallbackHost && !isCallbackPath) {
+    return { ok: false, error: "Unexpected callback path" };
   }
 
   const code = parsed.searchParams.get("code");

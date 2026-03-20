@@ -15,6 +15,15 @@ import type { SpotifyError } from "@showerlist/spotify-client";
 // __dirname = apps/desktop/dist/main at runtime, so go up 4 levels.
 config({ path: join(__dirname, "..", "..", "..", "..", ".env") });
 
+// Fail fast: SPOTIFY_CLIENT_ID is required for any Spotify interaction.
+if (!process.env["SPOTIFY_CLIENT_ID"]) {
+  console.error(
+    "[ShowerList] FATAL: SPOTIFY_CLIENT_ID environment variable is not set. " +
+      "Add it to the .env file at the repository root.",
+  );
+  process.exit(1);
+}
+
 // Prevent multiple instances of the app
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -105,6 +114,9 @@ function onAuthSuccess(): void {
     spotifyService.init(stored.value, cid);
     startTitlePolling();
     updateTrayTitle().catch(() => {});
+  } else if (stored.error !== "No tokens stored") {
+    tray?.setToolTip("ShowerList — Token load failed, reconnect");
+    refreshMenu();
   }
   tray?.setToolTip("ShowerList");
   refreshMenu();
@@ -221,6 +233,9 @@ app.whenReady().then(() => {
       spotifyService.init(stored.value, clientId);
       startTitlePolling();
       updateTrayTitle().catch(() => {});
+      refreshMenu();
+    } else if (stored.error !== "No tokens stored") {
+      tray?.setToolTip("ShowerList — Token load failed, reconnect");
       refreshMenu();
     }
   }

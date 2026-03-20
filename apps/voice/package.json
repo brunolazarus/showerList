@@ -1,0 +1,19 @@
+{
+  "name": "@showerlist/voice",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "naudiodon": "^2.3.6"
+  },
+  "devDependencies": {
+    "@types/naudiodon": "^2.2.5",
+    "@types/node": "^20.14.0",
+    "typescript": "^5.4.0"
+  }
+}

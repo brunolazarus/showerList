@@ -18,7 +18,7 @@
 
 ## Build Tool
 
-**electron-builder** — added to `apps/desktop` devDependencies in Phase 4/5.
+**electron-builder** — added to `apps/desktop` devDependencies in Phase 5 ✅
 
 ```bash
 pnpm --filter desktop package   # produces .app + .dmg in apps/desktop/dist/
@@ -65,7 +65,10 @@ Add to `apps/desktop/package.json` under `"build"`:
 | File                                       | Size              | Purpose                    |
 | ------------------------------------------ | ----------------- | -------------------------- |
 | `apps/desktop/assets/trayIconTemplate.png` | 16×16 or 22×22 px | Menu bar icon              |
-| `apps/desktop/assets/icon.icns`            | 512×512 source    | App icon for Finder + .dmg |
+| `apps/desktop/assets/icon.icns`            | 512×512 source    | Optional custom app icon for Finder + .dmg |
+
+Current Phase 5 status: packaging uses Electron default app icon until
+`apps/desktop/assets/icon.icns` is added.
 
 To generate `icon.icns` from a single 1024×1024 PNG:
 
