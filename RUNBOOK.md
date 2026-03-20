@@ -5,6 +5,7 @@
 - Node.js 20+
 - pnpm 9+
 - macOS 13+ (Ventura) — primary dev target
+- sox (`brew install sox`) — required by the voice audio capture process
 - Spotify Developer account + registered app (see Setup)
 
 ## Spotify App Setup (one-time)

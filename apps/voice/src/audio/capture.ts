@@ -1,8 +1,4 @@
-import { Readable } from "stream";
-// Import types only — zero runtime cost; avoids loading the native .node
-// binary at module load time (ABI mismatch / missing portaudio would otherwise
-// crash the process before any error handler runs).
-import type * as portAudioTypes from "naudiodon";
+import { spawn, ChildProcess } from "child_process";
 
 const CHANNEL_COUNT = 2;
 const SAMPLE_RATE = 48000;
@@ -11,63 +7,55 @@ const SAMPLE_RATE = 48000;
 export const FRAME_SAMPLE_COUNT = 480;
 const BYTES_PER_FRAME = FRAME_SAMPLE_COUNT * CHANNEL_COUNT * 2; // 1920 bytes
 
-// The inOptions-only overload returns Readable & AudioStream.
-type InputAudioStream = Readable & {
-  start(): void;
-  quit(cb?: () => void): void;
-};
-
-let stream: InputAudioStream | null = null;
+// sox "rec" is used to capture raw PCM from the default input device.
+// Prerequisite: brew install sox
+let proc: ChildProcess | null = null;
 
 export function startCapture(
   onFrame: (frame: Int16Array) => void,
   onError?: (err: Error) => void,
 ): void {
-  if (stream) {
+  if (proc) {
     throw new Error("Audio capture already running");
   }
 
-  // Lazy-load the native addon so ABI / missing-library errors are catchable
-  // rather than crashing the process before any JS logic runs.
-  let portAudio: typeof portAudioTypes;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    portAudio = require("naudiodon") as typeof portAudioTypes;
-  } catch (loadErr) {
-    onError?.(loadErr instanceof Error ? loadErr : new Error(String(loadErr)));
-    return;
-  }
+  const child = spawn(
+    "rec",
+    [
+      "-t", "raw",              // raw PCM, no file header
+      "-r", String(SAMPLE_RATE),
+      "-e", "signed",
+      "-b", "16",               // 16-bit samples
+      "-c", String(CHANNEL_COUNT),
+      "-",                      // write to stdout
+    ],
+    { stdio: ["ignore", "pipe", "pipe"] },
+  );
 
-  // The AudioIO constructor can also throw (e.g. no audio device, portaudio
-  // init failure) — catch it so the error travels through IPC.
-  let s: InputAudioStream;
-  try {
-    s = portAudio.AudioIO({
-      inOptions: {
-        channelCount: CHANNEL_COUNT,
-        sampleFormat: portAudio.SampleFormat16Bit,
-        sampleRate: SAMPLE_RATE,
-        deviceId: -1, // default device
-      },
-    }) as unknown as InputAudioStream;
-  } catch (initErr) {
-    onError?.(initErr instanceof Error ? initErr : new Error(String(initErr)));
-    return;
-  }
+  proc = child;
 
-  stream = s;
-
-  s.on("error", (err: Error) => {
-    stream = null;
+  child.on("error", (err: Error) => {
+    proc = null;
     onError?.(err);
   });
 
-  // portaudio delivers data in variable-sized chunks; accumulate until we have
+  child.on("close", (code) => {
+    // code null = killed by signal (expected on stopCapture); 0 = clean exit
+    if (code !== null && code !== 0) {
+      proc = null;
+      onError?.(new Error(`rec exited with code ${code}`));
+    }
+  });
+
+  // Drain stderr so the pipe never backs up (sox writes progress info there).
+  child.stderr?.resume();
+
+  // sox delivers data in variable-sized chunks; accumulate until we have
   // a full 480-sample frame before forwarding.
   let accumulator = Buffer.alloc(0);
 
-  s.on("data", (chunk: unknown) => {
-    accumulator = Buffer.concat([accumulator, chunk as Buffer]);
+  child.stdout!.on("data", (chunk: Buffer) => {
+    accumulator = Buffer.concat([accumulator, chunk]);
     while (accumulator.length >= BYTES_PER_FRAME) {
       const frameBytes = accumulator.subarray(0, BYTES_PER_FRAME);
       accumulator = accumulator.subarray(BYTES_PER_FRAME);
@@ -80,14 +68,16 @@ export function startCapture(
       onFrame(frame);
     }
   });
-
-  s.start();
 }
 
 export function stopCapture(onDone?: () => void): void {
-  if (stream) {
-    stream.quit(onDone);
-    stream = null;
+  if (proc) {
+    const p = proc;
+    proc = null;
+    if (onDone) {
+      p.once("close", () => onDone());
+    }
+    p.kill("SIGTERM");
   } else {
     onDone?.();
   }
