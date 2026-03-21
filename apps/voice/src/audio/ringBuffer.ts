@@ -18,6 +18,11 @@ export class RingBuffer {
   }
 
   push(frame: Int16Array): void {
+    if (frame.length !== this.frameSize) {
+      throw new RangeError(
+        `RingBuffer.push: expected ${this.frameSize} samples, got ${frame.length}`,
+      );
+    }
     this.buf.set(frame, this.writeIdx * this.frameSize);
     this.writeIdx = (this.writeIdx + 1) % this.capacity;
     if (this.frameCount < this.capacity) this.frameCount++;
