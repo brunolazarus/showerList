@@ -23,15 +23,28 @@
     "productName": "ShowerList",
     "mac": {
       "category": "public.app-category.music",
-      "target": [{ "target": "dmg", "arch": ["universal"] }]
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ]
     },
     "protocols": [
       {
         "name": "ShowerList",
-        "schemes": ["showerlist"]
+        "schemes": [
+          "showerlist"
+        ]
       }
     ],
-    "files": ["dist/**/*", "assets/**/*", "!assets/README.md"],
+    "files": [
+      "dist/**/*",
+      "assets/**/*",
+      "!assets/README.md"
+    ],
     "extraMetadata": {
       "main": "dist/main/index.js"
     }

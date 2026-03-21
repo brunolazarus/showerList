@@ -62,9 +62,9 @@ Add to `apps/desktop/package.json` under `"build"`:
 
 ## Required Assets Before Packaging
 
-| File                                       | Size              | Purpose                    |
-| ------------------------------------------ | ----------------- | -------------------------- |
-| `apps/desktop/assets/trayIconTemplate.png` | 16×16 or 22×22 px | Menu bar icon              |
+| File                                       | Size              | Purpose                                    |
+| ------------------------------------------ | ----------------- | ------------------------------------------ |
+| `apps/desktop/assets/trayIconTemplate.png` | 16×16 or 22×22 px | Menu bar icon                              |
 | `apps/desktop/assets/icon.icns`            | 512×512 source    | Optional custom app icon for Finder + .dmg |
 
 Current Phase 5 status: packaging uses Electron default app icon until

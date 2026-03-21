@@ -16,16 +16,15 @@ After this phase:
 
 ## Files in Scope
 
-| Action | File                                                      |
-| ------ | --------------------------------------------------------- |
-| Create | `apps/voice/package.json`                                 |
-| Create | `apps/voice/tsconfig.json`                                |
-| Create | `apps/voice/src/index.ts`                                 |
-| Create | `apps/voice/src/ipc.ts`                                   |
-| Create | `apps/voice/src/audio/capture.ts`                         |
-| Create | `apps/voice/src/audio/ringBuffer.ts`                      |
-| Modify | `pnpm-workspace.yaml` — add `apps/voice`                  |
-| Modify | `apps/desktop/package.json` — add `electron-rebuild` step |
+| Action | File                                                  |
+| ------ | ----------------------------------------------------- |
+| Create | `apps/voice/package.json`                             |
+| Create | `apps/voice/tsconfig.json`                            |
+| Create | `apps/voice/src/index.ts`                             |
+| Create | `apps/voice/src/ipc.ts`                               |
+| Create | `apps/voice/src/audio/capture.ts`                     |
+| Create | `apps/voice/src/audio/ringBuffer.ts`                  |
+| Modify | `pnpm-workspace.yaml` — no change required (`apps/*`) |
 
 ## Files Out of Scope
 
@@ -71,10 +70,11 @@ export type VoiceMessage = VoiceCommandMessage | VoiceStatusMessage;
 
 ## Audio Capture
 
-- Library: `naudiodon` (portaudio Node.js bindings)
+- Backend: SoX `rec` binary spawned from Node.js (`child_process.spawn`)
 - Input config: 48kHz, 16-bit signed PCM, 2 channels (stereo), device = default
 - Frame size: 480 samples (10ms at 48kHz) — required by RNNoise in Phase 7
 - Ring buffer: circular, 2-second capacity (96 000 stereo samples), typed as `Int16Array`
+- Runtime prerequisite: `rec` must be available in PATH (`brew install sox` on macOS)
 
 `capture.ts` exposes:
 
@@ -83,8 +83,8 @@ startCapture(onFrame: (frame: Int16Array) => void): void
 stopCapture(): void
 ```
 
-`naudiodon` requires native recompilation against the Electron Node.js version.
-Add `electron-rebuild` as a postinstall script in `apps/desktop/package.json`.
+`capture.ts` handles recorder process lifecycle (spawn, stderr drain, and SIGTERM shutdown)
+to avoid native addon ABI issues.
 
 ---
 
@@ -92,9 +92,10 @@ Add `electron-rebuild` as a postinstall script in `apps/desktop/package.json`.
 
 - `pnpm --filter @showerlist/voice build` succeeds
 - `pnpm typecheck` passes across all packages
+- `command -v rec` returns a valid executable path
 - Running `node apps/voice/dist/index.js` captures audio without crashing
 - Stdout emits `{"type":"status","state":"idle"}` on startup
 
 ## Rollback
 
-Delete `apps/voice/` and revert `pnpm-workspace.yaml` and `apps/desktop/package.json`.
+Delete `apps/voice/` and revert `pnpm-workspace.yaml` only if workspace globs were changed.

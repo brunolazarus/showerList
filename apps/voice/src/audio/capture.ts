@@ -22,12 +22,17 @@ export function startCapture(
   const child = spawn(
     "rec",
     [
-      "-t", "raw",              // raw PCM, no file header
-      "-r", String(SAMPLE_RATE),
-      "-e", "signed",
-      "-b", "16",               // 16-bit samples
-      "-c", String(CHANNEL_COUNT),
-      "-",                      // write to stdout
+      "-t",
+      "raw", // raw PCM, no file header
+      "-r",
+      String(SAMPLE_RATE),
+      "-e",
+      "signed",
+      "-b",
+      "16", // 16-bit samples
+      "-c",
+      String(CHANNEL_COUNT),
+      "-", // write to stdout
     ],
     { stdio: ["ignore", "pipe", "pipe"] },
   );
