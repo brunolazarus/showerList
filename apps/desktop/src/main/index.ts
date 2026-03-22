@@ -10,6 +10,8 @@ import {
 } from "./oauthManager";
 import * as spotifyService from "./spotifyService";
 import type { SpotifyError } from "@showerlist/spotify-client";
+import { createVoiceManager, VoiceManager } from "./voiceManager";
+import { isVoiceEnabled, setVoiceEnabled } from "./settingsStore";
 
 // Load .env from workspace root.
 // __dirname = apps/desktop/dist/main at runtime, so go up 4 levels.
@@ -32,6 +34,7 @@ if (!app.requestSingleInstanceLock()) {
 
 let tray: Tray | null = null;
 let titlePollInterval: ReturnType<typeof setInterval> | null = null;
+let voiceManager: VoiceManager | null = null;
 
 function getTrayIcon(): Electron.NativeImage {
   // Production: place a 16x16 or 22x22 PNG at assets/trayIconTemplate.png.
@@ -55,6 +58,53 @@ function getTrayIcon(): Electron.NativeImage {
   return nativeImage.createFromDataURL(
     "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAH0lEQVQ4T2NkYGBg+E8BZlABRicajBqgbg0wOAAATe4BBQ6T9FEAAAAASUVORK5CYII=",
   );
+}
+
+function startVoice(): void {
+  if (voiceManager?.isRunning()) return;
+  voiceManager = createVoiceManager({
+    onCommand: (cmd) => {
+      const dispatch = (): Promise<{ ok: boolean; error?: SpotifyError }> => {
+        switch (cmd) {
+          case "skip":     return spotifyService.cmdNext();
+          case "previous": return spotifyService.cmdPrevious();
+          case "pause":    return spotifyService.cmdPause();
+          case "play":     return spotifyService.cmdPlay();
+        }
+      };
+      dispatch()
+        .then((result) => {
+          if (result.ok) {
+            tray?.setToolTip("ShowerList");
+            scheduleTrackRefresh();
+          } else {
+            handleCommandError(result.error!);
+          }
+        })
+        .catch(() => {});
+    },
+    onStatusChange: (state) => {
+      if (state === "listening") {
+        tray?.setToolTip("ShowerList — Listening…");
+      } else if (state === "processing") {
+        tray?.setToolTip("ShowerList — Processing…");
+      } else if (state === "ready" || state === "idle") {
+        tray?.setToolTip("ShowerList");
+      } else if (state === "error") {
+        tray?.setToolTip("ShowerList — Voice error");
+      }
+    },
+  });
+  voiceManager.start().catch((err: unknown) => {
+    console.error("[ShowerList] Voice process failed:", err);
+    voiceManager = null;
+    refreshMenu();
+  });
+}
+
+function stopVoice(): void {
+  voiceManager?.stop();
+  voiceManager = null;
 }
 
 function handleCommandError(error: SpotifyError): void {
@@ -179,6 +229,20 @@ function buildMenu(): MenuItemConstructorOptions[] {
     },
     { type: "separator" },
     {
+      label: isVoiceEnabled() ? "🎙  Voice: On" : "🎙  Voice: Off",
+      click: () => {
+        const next = !isVoiceEnabled();
+        setVoiceEnabled(next);
+        if (next) {
+          startVoice();
+        } else {
+          stopVoice();
+        }
+        refreshMenu();
+      },
+    },
+    { type: "separator" },
+    {
       label: connected ? "✓  Connected to Spotify" : "Connect to Spotify…",
       enabled: !connected,
       click: () => {
@@ -224,6 +288,11 @@ app.whenReady().then(() => {
   });
 
   createTray();
+
+  // Start voice input if enabled
+  if (isVoiceEnabled()) {
+    startVoice();
+  }
 
   // Load stored tokens and init service if available
   const clientId = process.env["SPOTIFY_CLIENT_ID"] ?? "";

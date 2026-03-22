@@ -88,6 +88,14 @@ async function run<T>(fn: SpotifyFn<T>): Promise<Result<T, SpotifyError>> {
   return result;
 }
 
+export async function cmdPause(): Promise<Result<void, SpotifyError>> {
+  return run(spotify.pause);
+}
+
+export async function cmdPlay(): Promise<Result<void, SpotifyError>> {
+  return run(spotify.play);
+}
+
 export async function cmdNext(): Promise<Result<void, SpotifyError>> {
   return run(spotify.next);
 }
