@@ -7,7 +7,7 @@ export type VoiceCommandMessage = {
 
 export type VoiceStatusMessage = {
   type: "status";
-  state: "idle" | "listening" | "processing" | "error";
+  state: "idle" | "ready" | "listening" | "processing" | "error";
   detail?: string;
 };
 
