@@ -6,9 +6,16 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test-pipeline": "tsc && node dist/scripts/testPipeline.js",
+    "test-pipeline-sample": "tsc && node dist/scripts/testPipelineSample.js",
     "start": "node dist/index.js"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@ricky0123/vad-node": "latest",
+    "@shiguredo/rnnoise-wasm": "^2025.1.5",
+    "onnxruntime-node": "^1.24.3"
+  },
   "devDependencies": {
     "@types/node": "^20.14.0",
     "typescript": "^5.4.0"
