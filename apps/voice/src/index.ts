@@ -54,7 +54,13 @@ createPipeline({
   .then((p) => {
     pipeline = p;
     try {
+      let frameCount = 0;
       startCapture((frame) => {
+        frameCount++;
+        if (frameCount === 1) {
+          process.stderr.write("[index] first audio frame received\n");
+        }
+
         ringBuffer.push(frame);
 
         // Feed pre-RNNoise mono to the clap detector to preserve transient energy.

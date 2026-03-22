@@ -76,12 +76,22 @@ export function createClapDetector(opts: {
     opts.onDoubleClap();
   }
 
+  let debugFrameCount = 0;
+
   function pushFrame(mono48k: Int16Array): void {
     const frameRms = rms(mono48k);
 
     // Update baseline only on quiet frames to track ambient level
     if (frameRms < baseline * SPIKE_FACTOR) {
       baseline = baseline * (1 - EMA_ALPHA) + frameRms * EMA_ALPHA;
+    }
+
+    // DEBUG: log RMS and baseline every ~1s (100 frames × 10ms)
+    debugFrameCount++;
+    if (debugFrameCount % 100 === 0) {
+      process.stderr.write(
+        `[clap] rms=${frameRms.toFixed(1)} baseline=${baseline.toFixed(1)} threshold=${(baseline * SPIKE_FACTOR).toFixed(1)}\n`,
+      );
     }
 
     if (Date.now() < cooldownUntil) return;
