@@ -1,10 +1,13 @@
 import { emit } from "./ipc";
 import { startCapture, stopCapture } from "./audio/capture";
 import { RingBuffer } from "./audio/ringBuffer";
+import { createPipeline, Pipeline } from "./pipeline";
 
 const ringBuffer = new RingBuffer();
+let pipeline: Pipeline | null = null;
 
 function shutdown(): void {
+  pipeline?.destroy();
   stopCapture(() => process.exit(0));
 }
 
@@ -21,10 +24,23 @@ function onCaptureError(err: Error): void {
   setImmediate(() => process.exit(1));
 }
 
-try {
-  startCapture((frame) => {
-    ringBuffer.push(frame);
-  }, onCaptureError);
-} catch (err) {
-  onCaptureError(err instanceof Error ? err : new Error(String(err)));
-}
+createPipeline({
+  onSpeechReady: (_audio) => {
+    // Phase 8 will transcribe and emit commands; for now just signal activity.
+    emit({ type: "status", state: "processing" });
+  },
+})
+  .then((p) => {
+    pipeline = p;
+    try {
+      startCapture((frame) => {
+        ringBuffer.push(frame);
+        pipeline!.pushFrame(frame);
+      }, onCaptureError);
+    } catch (err) {
+      onCaptureError(err instanceof Error ? err : new Error(String(err)));
+    }
+  })
+  .catch((err: unknown) => {
+    onCaptureError(err instanceof Error ? err : new Error(String(err)));
+  });

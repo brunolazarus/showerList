@@ -5,3 +5,4 @@ dist/
 .DS_Store
 apps/desktop/out/
 *.log
+apps/voice/src/scripts/*.wav
