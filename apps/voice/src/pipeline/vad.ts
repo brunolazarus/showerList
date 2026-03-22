@@ -1,3 +1,12 @@
+/**
+ * Voice Activity Detection (VAD) using the Silero model via @ricky0123/vad-node.
+ *
+ * Accepts a stream of small 16kHz mono frames (160 samples / 10ms each),
+ * accumulates them into 1536-sample chunks (96ms) required by the Silero model,
+ * and fires callbacks when speech starts or ends. On speech end, the full
+ * audio segment is returned as a Float32Array for downstream processing.
+ */
+
 import * as fs from "fs/promises";
 import * as path from "path";
 import { Silero } from "@ricky0123/vad-node/dist/_common/models";
