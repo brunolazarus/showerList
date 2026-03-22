@@ -104,6 +104,75 @@ open apps/desktop/dist/*.dmg
 
 ---
 
+## Voice Process Packaging (Phase 11)
+
+The voice subprocess runs as a separate Node.js process and must be bundled
+alongside the Electron app when distributing.
+
+### Bundle the voice dist as extraResources
+
+Add to `apps/desktop/package.json` under `"build"`:
+
+```json
+"extraResources": [
+  {
+    "from": "../../apps/voice/dist",
+    "to": "voice/dist",
+    "filter": ["**/*"]
+  }
+]
+```
+
+In production, `voiceManager.ts` resolves the path via `process.resourcesPath`:
+
+```ts
+const voicePath = app.isPackaged
+  ? path.join(process.resourcesPath, "voice", "dist", "index.js")
+  : path.join(__dirname, "../../../voice/dist/index.js");
+```
+
+### Microphone entitlement (required by macOS)
+
+Add to `apps/desktop/entitlements.mac.plist`:
+
+```xml
+<key>com.apple.security.device.audio-input</key>
+<true/>
+```
+
+And reference it in electron-builder config:
+
+```json
+"mac": {
+  "entitlements": "entitlements.mac.plist",
+  "entitlementsInherit": "entitlements.mac.plist"
+}
+```
+
+Add `NSMicrophoneUsageDescription` to the app's `Info.plist` via the
+electron-builder `extendInfo` field:
+
+```json
+"extendInfo": {
+  "NSMicrophoneUsageDescription": "ShowerList listens for clap commands to control Spotify."
+}
+```
+
+### sox prerequisite
+
+The voice capture layer calls `sox rec`. Document in the DMG README:
+
+> **Prerequisite:** install [SoX](https://sox.sourceforge.net) via Homebrew:
+> `brew install sox`
+
+### Node.js runtime
+
+The voice subprocess is launched with the system `node` binary. Verify that
+`node` is available in the PATH of the Electron process at launch time. For
+distribution, consider bundling Node via `pkg` or shipping a standalone binary.
+
+---
+
 ## Login Item (Auto-launch on Login)
 
 In the packaged app, add this to `index.ts`:

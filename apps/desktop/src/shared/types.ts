@@ -13,3 +13,13 @@ export type TokenData = {
 };
 
 export type PlaybackCommand = "next" | "previous" | "pause" | "play";
+
+// Voice process IPC types — mirrored from apps/voice/src/ipc.ts
+export type VoiceCommand = "skip" | "previous" | "pause" | "play";
+export type VoiceCommandMessage = { type: "command"; command: VoiceCommand };
+export type VoiceStatusMessage = {
+  type: "status";
+  state: "idle" | "ready" | "listening" | "processing" | "error";
+  detail?: string;
+};
+export type VoiceMessage = VoiceCommandMessage | VoiceStatusMessage;

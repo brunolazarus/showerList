@@ -9,11 +9,13 @@
     "test": "vitest run",
     "test-pipeline": "tsc && node dist/scripts/testPipeline.js",
     "test-pipeline-sample": "tsc && node dist/scripts/testPipelineSample.js",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "benchmark": "tsc && node dist/scripts/benchmark.js"
   },
   "dependencies": {
     "@ricky0123/vad-node": "latest",
     "@shiguredo/rnnoise-wasm": "^2025.1.5",
+    "@xenova/transformers": "^2.17.2",
     "onnxruntime-node": "^1.24.3"
   },
   "devDependencies": {
