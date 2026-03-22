@@ -26,16 +26,17 @@ gaps, validate end-to-end latency, and update packaging and deployment docs.
 
 ### `clapDetector.test.ts`
 
-Synthesize `Int16Array` buffers programmatically — no audio hardware required.
+Synthesize `Int16Array` buffers programmatically — no audio hardware required. Tests should use fake timers (`vi.useFakeTimers`) to control clap timing and cooldowns precisely.
 
-| Scenario                              | Expected                  |
-| ------------------------------------- | ------------------------- |
-| Double clap, 300ms gap                | `onActivation` fires once |
-| Single clap                           | no activation             |
-| Double clap, gap < 150ms              | no activation (too fast)  |
-| Double clap, gap > 600ms              | no activation (too slow)  |
-| Second double-clap within 2s cooldown | ignored                   |
-| Low-amplitude spikes (no clap)        | no activation             |
+| Scenario                                 | Expected                                        |
+| ---------------------------------------- | ----------------------------------------------- |
+| Single clap, then advance timer > 600ms  | `onSingleClap` fires once                       |
+| Double clap, 300ms gap                   | `onDoubleClap` fires once                       |
+| Double clap, 300ms gap                   | `onSingleClap` does not fire                    |
+| Double clap, gap > 600ms (too slow)      | `onSingleClap` fires twice (once for each clap) |
+| Double clap, gap < 150ms (too fast)      | `onSingleClap` fires once (for the second clap) |
+| Event fires, then another clap within 2s | The second clap is ignored due to cooldown      |
+| Low-amplitude spikes (below threshold)   | No event fires                                  |
 
 ### `commandMatcher.test.ts`
 

@@ -33,6 +33,7 @@ export function startCapture(
       "-c",
       String(CHANNEL_COUNT),
       "-", // write to stdout
+      "remix", "1", "1", // upmix mono hardware input to stereo (M3 Mac CoreAudio)
     ],
     { stdio: ["ignore", "pipe", "pipe"] },
   );
