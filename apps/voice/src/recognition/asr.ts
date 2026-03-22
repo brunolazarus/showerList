@@ -14,6 +14,12 @@ import { emit } from "../ipc.js";
 let pipeline: any = null;
 
 async function getTransformers(): Promise<typeof import("@xenova/transformers")> {
+  if (process.env["VITEST"]) {
+    // In tests, TypeScript's CJS transform converts import() to require(),
+    // which Vitest can intercept via vi.mock. Never reached in production.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return import("@xenova/transformers") as any;
+  }
   // @xenova/transformers is ESM-only; use dynamic import from CJS.
   // eslint-disable-next-line @typescript-eslint/no-implied-eval
   return new Function('return import("@xenova/transformers")')();

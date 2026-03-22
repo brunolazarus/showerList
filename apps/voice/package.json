@@ -9,7 +9,8 @@
     "test": "vitest run",
     "test-pipeline": "tsc && node dist/scripts/testPipeline.js",
     "test-pipeline-sample": "tsc && node dist/scripts/testPipelineSample.js",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "benchmark": "tsc && node dist/scripts/benchmark.js"
   },
   "dependencies": {
     "@ricky0123/vad-node": "latest",

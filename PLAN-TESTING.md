@@ -95,6 +95,67 @@ export default defineConfig({
 
 ---
 
+---
+
+## Voice Pipeline (`apps/voice/`) — Phase 11
+
+### Unit Tests
+
+#### `apps/voice/src/activation/clapDetector.test.ts`
+
+| Test | Status |
+| ---- | ------ |
+| Single clap → `onSingleClap` fires after 600ms | ✅ done |
+| Double clap 300ms gap → `onDoubleClap` fires, `onSingleClap` does not | ✅ done |
+| Double clap gap > 600ms → `onSingleClap` fires twice | ✅ done |
+| Double clap gap < 150ms → `onSingleClap` fires once (second clap) | ✅ done |
+| Second clap within 2s cooldown → ignored | ✅ done |
+| Low-amplitude frames below threshold → no event | ✅ done |
+
+#### `apps/voice/src/recognition/commandMatcher.test.ts`
+
+| Test | Status |
+| ---- | ------ |
+| Exact match: `"skip"` → `"skip"` | ✅ done |
+| Normalised: `"NEXT!"` → `"skip"` | ✅ done |
+| Substring: `"please skip this track"` → `"skip"` | ✅ done |
+| Levenshtein 1: `"nxt"` → `"skip"` | ✅ done |
+| Levenshtein 1: `"bak"` → `"previous"` | ✅ done |
+| Levenshtein 1: `"rezume"` → `"play"` | ✅ done |
+| Unrelated input → `null` | ✅ done |
+| `"stop and play"` → `"pause"` (first alias wins) | ✅ done |
+| All primary aliases from `aliases.ts` → correct command | ✅ done |
+
+#### `apps/voice/src/recognition/asr.test.ts`
+
+| Test | Status |
+| ---- | ------ |
+| `transcribe()` lowercases model output | ✅ done |
+| Uses `VOICE_MODEL_CACHE` env var for cache dir | ✅ done |
+| Falls back to `os.tmpdir()` when env var not set | ✅ done |
+| Reuses cached pipeline across calls | ✅ done |
+
+### Integration Test (manual)
+
+Run the pipeline on a real voice WAV in shower background noise:
+
+```bash
+cd apps/voice && pnpm test-pipeline <input.wav> <output.wav>
+```
+
+Inspect the output WAV; verify the dispatched command matches the spoken word.
+
+### Latency Benchmark
+
+```bash
+cd apps/voice && pnpm benchmark
+```
+
+Reports pipeline init time, per-frame processing time, VAD latency, and ASR latency.
+Target: < 1000ms total on Apple M1.
+
+---
+
 ## What Is Not Tested by Automation
 
 | Area                             | Why                             | Mitigation             |
@@ -103,6 +164,17 @@ export default defineConfig({
 | Full OAuth browser flow          | Requires Spotify + browser      | Manual acceptance test |
 | macOS `open-url` event           | Requires running Electron       | Manual acceptance test |
 | `safeStorage` with real keychain | Requires macOS Electron context | Manual smoke test      |
+
+---
+
+## Manual Voice Smoke Tests (run before merging any voice phase)
+
+- [ ] Double-clap with water running → Spotify command executes
+- [ ] Say wake word → tray shows "Listening…" → say "next" → track skips
+- [ ] Say unrecognised word → no command fired, tray returns to idle
+- [ ] Voice enabled on restart → voice process starts automatically
+- [ ] Voice process killed externally → desktop logs error, tray reflects state
+- [ ] First launch with no cached model → model downloads, command works after
 
 ---
 
